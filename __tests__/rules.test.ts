@@ -51,7 +51,7 @@ test("blocks deleting an artist on the open poll", () => {
   expect(() =>
     assertCanDeleteArtist({
       artistId: "a1",
-      openPollArtistIds: ["a1", "a2"],
+      lockedPollArtistIds: ["a1", "a2"],
     }),
   ).toThrow(PollRuleError);
 });

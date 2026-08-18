@@ -110,12 +110,20 @@ export async function renameArtistAction(formData: FormData) {
   revalidatePath("/dj/artists");
 }
 
-export async function removeArtistAction(formData: FormData) {
-  await requireDjSession();
-  const { db } = await getDb();
-  await removeArtist(db, String(formData.get("artistId") ?? ""));
-  revalidatePath("/dj/artists");
-  revalidatePath("/dj");
+export async function removeArtistAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  try {
+    await requireDjSession();
+    const { db } = await getDb();
+    await removeArtist(db, String(formData.get("artistId") ?? ""));
+    revalidatePath("/dj/artists");
+    revalidatePath("/dj");
+    return null;
+  } catch (error) {
+    return { error: errorMessage(error) };
+  }
 }
 
 export async function moveArtistAction(formData: FormData) {

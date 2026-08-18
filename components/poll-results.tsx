@@ -1,3 +1,5 @@
+"use client";
+
 import type { ResultOption } from "@/lib/db/queries";
 
 export function PollResults({

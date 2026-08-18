@@ -11,6 +11,7 @@ import {
   listPollOptions,
   openPoll,
   redrawPoll,
+  removeArtist,
   submitVote,
 } from "@/lib/db/queries";
 import { createId } from "@/lib/ids";
@@ -124,4 +125,31 @@ test("refuses to draw a poll with fewer than two artists", async () => {
   const eventId = await createEvent(db);
   await addArtist(db, eventId, "A");
   await expect(drawNextPoll(db, eventId)).rejects.toThrow();
+});
+
+test("removes an artist from a draft poll instead of crashing", async () => {
+  const { db } = await createMemoryDb();
+  const eventId = await createEvent(db);
+  for (const name of ["A", "B", "C", "D"]) {
+    await addArtist(db, eventId, name);
+  }
+  await drawNextPoll(db, eventId);
+  const roster = await listArtists(db, eventId);
+  await removeArtist(db, roster[0].id);
+  const remaining = await listArtists(db, eventId);
+  expect(remaining.map((artist) => artist.id)).not.toContain(roster[0].id);
+});
+
+test("cannot remove an artist from an open poll", async () => {
+  const { db } = await createMemoryDb();
+  const eventId = await createEvent(db);
+  for (const name of ["A", "B", "C", "D"]) {
+    await addArtist(db, eventId, name);
+  }
+  const poll = await drawNextPoll(db, eventId);
+  await openPoll(db, poll.id);
+  const options = await listPollOptions(db, poll.id);
+  await expect(removeArtist(db, options[0].artistId)).rejects.toBeInstanceOf(
+    PollRuleError,
+  );
 });

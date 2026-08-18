@@ -14,11 +14,18 @@ type Artist = {
 };
 
 export function ArtistList({ artists }: { artists: Artist[] }) {
-  const [state, action, pending] = useActionState(addArtistAction, null);
+  const [addState, addAction, addPending] = useActionState(
+    addArtistAction,
+    null,
+  );
+  const [removeState, removeAction, removePending] = useActionState(
+    removeArtistAction,
+    null,
+  );
 
   return (
     <div className="flex flex-col gap-8">
-      <form action={action} className="flex flex-col gap-3 sm:flex-row">
+      <form action={addAction} className="flex flex-col gap-3 sm:flex-row">
         <input
           name="name"
           required
@@ -27,14 +34,17 @@ export function ArtistList({ artists }: { artists: Artist[] }) {
         />
         <button
           type="submit"
-          disabled={pending}
+          disabled={addPending}
           className="h-12 rounded-xl bg-amber-400 px-5 font-semibold text-zinc-950 disabled:opacity-60"
         >
-          {pending ? "Adding…" : "Add"}
+          {addPending ? "Adding…" : "Add"}
         </button>
       </form>
-      {state?.error ? (
-        <p className="text-sm text-rose-300">{state.error}</p>
+      {addState?.error ? (
+        <p className="text-sm text-rose-300">{addState.error}</p>
+      ) : null}
+      {removeState?.error ? (
+        <p className="text-sm text-rose-300">{removeState.error}</p>
       ) : null}
 
       {artists.length === 0 ? (
@@ -80,11 +90,12 @@ export function ArtistList({ artists }: { artists: Artist[] }) {
                   Down
                 </button>
               </form>
-              <form action={removeArtistAction}>
+              <form action={removeAction}>
                 <input type="hidden" name="artistId" value={artist.id} />
                 <button
                   type="submit"
-                  className="h-11 rounded-xl px-3 text-sm text-rose-300"
+                  disabled={removePending}
+                  className="h-11 rounded-xl px-3 text-sm text-rose-300 disabled:opacity-60"
                 >
                   Remove
                 </button>

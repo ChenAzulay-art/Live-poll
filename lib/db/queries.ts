@@ -81,26 +81,58 @@ export async function renameArtist(db: Db, artistId: string, name: string) {
 }
 
 export async function removeArtist(db: Db, artistId: string) {
-  const openArtistIds = await listOpenPollArtistIdsForArtist(db, artistId);
-  assertCanDeleteArtist({ artistId, openPollArtistIds: openArtistIds });
-  await db.delete(artists).where(eq(artists.id, artistId));
-}
-
-async function listOpenPollArtistIdsForArtist(db: Db, artistId: string) {
   const [artist] = await db
     .select()
     .from(artists)
     .where(eq(artists.id, artistId))
     .limit(1);
   if (!artist) {
-    return [];
+    return;
   }
-  const openPoll = await getOpenPoll(db, artist.eventId);
-  if (!openPoll) {
-    return [];
+
+  const references = await db
+    .select({
+      pollId: pollOptions.pollId,
+      status: polls.status,
+    })
+    .from(pollOptions)
+    .innerJoin(polls, eq(polls.id, pollOptions.pollId))
+    .where(eq(pollOptions.artistId, artistId));
+
+  const lockedPollArtistIds = references.some(
+    (row) => row.status === "open" || row.status === "closed",
+  )
+    ? [artistId]
+    : [];
+  assertCanDeleteArtist({ artistId, lockedPollArtistIds });
+
+  const draftPollIds = [
+    ...new Set(
+      references
+        .filter((row) => row.status === "draft")
+        .map((row) => row.pollId),
+    ),
+  ];
+
+  if (draftPollIds.length > 0) {
+    await db
+      .delete(pollOptions)
+      .where(
+        and(
+          eq(pollOptions.artistId, artistId),
+          inArray(pollOptions.pollId, draftPollIds),
+        ),
+      );
+
+    for (const pollId of draftPollIds) {
+      const remaining = await listPollOptions(db, pollId);
+      if (remaining.length < 2) {
+        await db.delete(polls).where(eq(polls.id, pollId));
+      }
+    }
   }
-  const options = await listPollOptions(db, openPoll.id);
-  return options.map((option) => option.artistId);
+
+  await db.delete(artists).where(eq(artists.id, artistId));
 }
 
 export async function moveArtist(

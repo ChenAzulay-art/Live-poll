@@ -44,9 +44,11 @@ export function assertCanClose(status: PollStatus) {
 
 export function assertCanDeleteArtist(input: {
   artistId: string;
-  openPollArtistIds: string[];
+  lockedPollArtistIds: string[];
 }) {
-  if (input.openPollArtistIds.includes(input.artistId)) {
-    throw new PollRuleError("Cannot remove an artist who is on the open poll.");
+  if (input.lockedPollArtistIds.includes(input.artistId)) {
+    throw new PollRuleError(
+      "Cannot remove an artist who is on an open or closed poll.",
+    );
   }
 }
