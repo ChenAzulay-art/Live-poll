@@ -4,5 +4,7 @@ import Page from "@/app/page";
 
 test("renders the home page heading", () => {
   render(<Page />);
-  expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+  expect(
+    screen.getByRole("heading", { level: 1, name: "Who's next?" }),
+  ).toBeInTheDocument();
 });

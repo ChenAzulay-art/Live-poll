@@ -6,3 +6,6 @@ coverage
 pnpm-lock.yaml
 package-lock.json
 next-env.d.ts
+*.db
+*.db-journal
+drizzle
