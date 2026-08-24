@@ -11,6 +11,9 @@ export default async function DjLayout({ children }: { children: ReactNode }) {
       <header className="flex items-center justify-between gap-4 border-b border-zinc-800 px-6 py-4">
         <p className="font-semibold tracking-tight">DJ booth</p>
         <nav className="flex items-center gap-4 text-sm font-medium">
+          <Link href="/" className="text-zinc-300 hover:text-white">
+            User login
+          </Link>
           <Link href="/dj" className="text-zinc-300 hover:text-white">
             Live
           </Link>
