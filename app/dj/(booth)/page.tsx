@@ -3,14 +3,18 @@ import { headers } from "next/headers";
 import { DashboardControls } from "@/components/dashboard-controls";
 import { LiveRefresh } from "@/components/live-refresh";
 import { PollResults } from "@/components/poll-results";
+import { PollTimer } from "@/components/poll-timer";
+import { PollWinner } from "@/components/poll-winner";
 import { getDb } from "@/lib/db/client";
 import {
   getDefaultEvent,
   getDraftPoll,
+  getLatestClosedPoll,
   getOpenPoll,
   getPollResults,
   listPollOptions,
 } from "@/lib/db/queries";
+import { closesAt } from "@/lib/poll/timer";
 
 export const dynamic = "force-dynamic";
 
@@ -32,9 +36,11 @@ export default async function DjDashboardPage() {
     getOpenPoll(db, event.id),
     getDraftPoll(db, event.id),
   ]);
-  const activePoll = openPoll ?? draftPoll;
-  const results = activePoll ? await getPollResults(db, activePoll.id) : null;
+  const closedPoll = openPoll ? null : await getLatestClosedPoll(db, event.id);
+  const livePoll = openPoll ?? closedPoll;
+  const results = livePoll ? await getPollResults(db, livePoll.id) : null;
   const draftOptions = draftPoll ? await listPollOptions(db, draftPoll.id) : [];
+  const deadline = openPoll ? closesAt(openPoll.openedAt) : null;
 
   const voteUrl = `${await appUrl()}/vote/${event.code}`;
   const qrDataUrl = await QRCode.toDataURL(voteUrl, {
@@ -49,11 +55,22 @@ export default async function DjDashboardPage() {
       <section className="flex flex-1 flex-col gap-6">
         <div className="flex flex-col gap-2">
           <p className="text-sm font-medium uppercase tracking-[0.2em] text-purple-400">
-            {openPoll ? "Live" : draftPoll ? "Draft" : "Waiting"}
+            {openPoll
+              ? "Live"
+              : closedPoll
+                ? "Winner"
+                : draftPoll
+                  ? "Draft"
+                  : "Waiting"}
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">
-            {activePoll?.question ?? "Draw a poll to start"}
+            {livePoll?.question ??
+              draftPoll?.question ??
+              "Draw a poll to start"}
           </h1>
+          {openPoll && deadline ? (
+            <PollTimer closesAt={deadline} compact />
+          ) : null}
           <p className="text-zinc-400">
             {results
               ? `${results.total} vote${results.total === 1 ? "" : "s"}`
@@ -64,7 +81,12 @@ export default async function DjDashboardPage() {
           draftPollId={draftPoll?.id ?? null}
           openPollId={openPoll?.id ?? null}
         />
+        {closedPoll && results ? (
+          <PollWinner options={results.options} total={results.total} />
+        ) : null}
         {openPoll && results ? (
+          <PollResults options={results.options} total={results.total} />
+        ) : closedPoll && results ? (
           <PollResults options={results.options} total={results.total} />
         ) : draftOptions.length > 0 ? (
           <ul className="flex flex-col gap-2 text-lg">

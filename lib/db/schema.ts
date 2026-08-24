@@ -39,6 +39,7 @@ export const polls = sqliteTable("polls", {
   status: text("status").$type<PollStatus>().notNull(),
   position: integer("position").notNull(),
   createdAt: integer("created_at", { mode: "number" }).notNull(),
+  openedAt: integer("opened_at", { mode: "number" }),
 });
 
 export const pollOptions = sqliteTable("poll_options", {

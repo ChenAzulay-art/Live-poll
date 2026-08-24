@@ -3,6 +3,7 @@ import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import { artists, events, pollOptions, polls, votes } from "@/lib/db/schema";
 import { createId } from "@/lib/ids";
 import { drawArtists } from "@/lib/poll/draw";
+import { isExpired } from "@/lib/poll/timer";
 import {
   assertCanClose,
   assertCanDeleteArtist,
@@ -173,6 +174,23 @@ export async function getOpenPoll(db: Db, eventId: string) {
     .from(polls)
     .where(and(eq(polls.eventId, eventId), eq(polls.status, "open")))
     .limit(1);
+  if (!poll) {
+    return null;
+  }
+  if (isExpired(poll.openedAt)) {
+    await closePoll(db, poll.id);
+    return null;
+  }
+  return poll;
+}
+
+export async function getLatestClosedPoll(db: Db, eventId: string) {
+  const [poll] = await db
+    .select()
+    .from(polls)
+    .where(and(eq(polls.eventId, eventId), eq(polls.status, "closed")))
+    .orderBy(desc(polls.createdAt))
+    .limit(1);
   return poll ?? null;
 }
 
@@ -328,7 +346,10 @@ export async function openPoll(db: Db, pollId: string) {
     .update(polls)
     .set({ status: "closed" })
     .where(and(eq(polls.eventId, poll.eventId), eq(polls.status, "open")));
-  await db.update(polls).set({ status: "open" }).where(eq(polls.id, poll.id));
+  await db
+    .update(polls)
+    .set({ status: "open", openedAt: Date.now() })
+    .where(eq(polls.id, poll.id));
 }
 
 export async function closePoll(db: Db, pollId: string) {
@@ -392,6 +413,11 @@ export async function submitVote(
     .limit(1);
   if (!poll) {
     throw new PollRuleError("Poll not found.");
+  }
+
+  if (poll.status === "open" && isExpired(poll.openedAt)) {
+    await closePoll(db, poll.id);
+    throw new PollRuleError("Voting has closed.");
   }
 
   const [option] = await db

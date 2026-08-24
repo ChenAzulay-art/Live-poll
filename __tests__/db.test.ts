@@ -1,11 +1,13 @@
 // @vitest-environment node
 import { expect, test } from "vitest";
+import { eq } from "drizzle-orm";
 import { createMemoryDb } from "@/lib/db/client";
-import { events } from "@/lib/db/schema";
+import { events, polls } from "@/lib/db/schema";
 import {
   addArtist,
   countOpenPolls,
   drawNextPoll,
+  getOpenPoll,
   getPollResults,
   listArtists,
   listPollOptions,
@@ -16,6 +18,7 @@ import {
 } from "@/lib/db/queries";
 import { createId } from "@/lib/ids";
 import { PollRuleError } from "@/lib/poll/rules";
+import { POLL_DURATION_MS } from "@/lib/poll/timer";
 
 async function createEvent(
   db: Awaited<ReturnType<typeof createMemoryDb>>["db"],
@@ -152,4 +155,58 @@ test("cannot remove an artist from an open poll", async () => {
   await expect(removeArtist(db, options[0].artistId)).rejects.toBeInstanceOf(
     PollRuleError,
   );
+});
+
+async function seedRoster(
+  db: Awaited<ReturnType<typeof createMemoryDb>>["db"],
+  eventId: string,
+) {
+  for (const name of ["A", "B", "C", "D"]) {
+    await addArtist(db, eventId, name);
+  }
+}
+
+test("openPoll records openedAt", async () => {
+  const { db } = await createMemoryDb();
+  const eventId = await createEvent(db);
+  await seedRoster(db, eventId);
+  const poll = await drawNextPoll(db, eventId);
+  await openPoll(db, poll.id);
+  const [row] = await db.select().from(polls).where(eq(polls.id, poll.id));
+  expect(row.openedAt).toEqual(expect.any(Number));
+});
+
+test("closes an expired open poll on read", async () => {
+  const { db } = await createMemoryDb();
+  const eventId = await createEvent(db);
+  await seedRoster(db, eventId);
+  const poll = await drawNextPoll(db, eventId);
+  await openPoll(db, poll.id);
+  await db
+    .update(polls)
+    .set({ openedAt: Date.now() - POLL_DURATION_MS - 1 })
+    .where(eq(polls.id, poll.id));
+  expect(await getOpenPoll(db, eventId)).toBeNull();
+  const [row] = await db.select().from(polls).where(eq(polls.id, poll.id));
+  expect(row.status).toBe("closed");
+});
+
+test("rejects votes after the deadline", async () => {
+  const { db } = await createMemoryDb();
+  const eventId = await createEvent(db);
+  await seedRoster(db, eventId);
+  const poll = await drawNextPoll(db, eventId);
+  await openPoll(db, poll.id);
+  const options = await listPollOptions(db, poll.id);
+  await db
+    .update(polls)
+    .set({ openedAt: Date.now() - POLL_DURATION_MS - 1 })
+    .where(eq(polls.id, poll.id));
+  await expect(
+    submitVote(db, {
+      pollId: poll.id,
+      optionId: options[0].id,
+      voterId: createId(),
+    }),
+  ).rejects.toBeInstanceOf(PollRuleError);
 });

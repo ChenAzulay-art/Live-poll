@@ -1,13 +1,18 @@
 import { LiveRefresh } from "@/components/live-refresh";
+import { PollTimer } from "@/components/poll-timer";
+import { PollWinner } from "@/components/poll-winner";
 import { VotePanel } from "@/components/vote-panel";
+import { PollResults } from "@/components/poll-results";
 import { getDb } from "@/lib/db/client";
 import { getVoterId } from "@/lib/auth/cookies";
 import {
   getEventByCode,
+  getLatestClosedPoll,
   getOpenPoll,
   getPollResults,
   getVoterChoice,
 } from "@/lib/db/queries";
+import { closesAt } from "@/lib/poll/timer";
 
 export const dynamic = "force-dynamic";
 
@@ -30,10 +35,13 @@ export default async function VotePage({
   }
 
   const openPoll = await getOpenPoll(db, event.id);
+  const closedPoll = openPoll ? null : await getLatestClosedPoll(db, event.id);
+  const displayPoll = openPoll ?? closedPoll;
   const voterId = await getVoterId();
-  const results = openPoll ? await getPollResults(db, openPoll.id) : null;
+  const results = displayPoll ? await getPollResults(db, displayPoll.id) : null;
   const vote =
     openPoll && voterId ? await getVoterChoice(db, openPoll.id, voterId) : null;
+  const deadline = openPoll ? closesAt(openPoll.openedAt) : null;
 
   return (
     <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-8 px-6 py-12">
@@ -43,12 +51,13 @@ export default async function VotePage({
           {event.name}
         </p>
         <h1 className="text-4xl font-semibold tracking-tight">
-          {openPoll?.question ?? "Waiting for the DJ"}
+          {displayPoll?.question ?? "Waiting for the DJ"}
         </h1>
+        {openPoll && deadline ? <PollTimer closesAt={deadline} /> : null}
         {results ? (
           <p className="text-zinc-400">
             {results.total} vote{results.total === 1 ? "" : "s"}
-            {vote ? " · You’re in" : " · Tap an artist"}
+            {openPoll ? (vote ? " · You’re in" : " · Tap an artist") : ""}
           </p>
         ) : (
           <p className="text-zinc-400">
@@ -56,6 +65,9 @@ export default async function VotePage({
           </p>
         )}
       </div>
+      {closedPoll && results ? (
+        <PollWinner options={results.options} total={results.total} />
+      ) : null}
       {openPoll && results ? (
         <VotePanel
           pollId={openPoll.id}
@@ -63,6 +75,9 @@ export default async function VotePage({
           total={results.total}
           selectedOptionId={vote?.optionId ?? null}
         />
+      ) : null}
+      {closedPoll && results ? (
+        <PollResults options={results.options} total={results.total} />
       ) : null}
     </main>
   );
