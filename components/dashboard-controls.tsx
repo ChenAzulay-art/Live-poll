@@ -32,7 +32,7 @@ export function DashboardControls({
           type="button"
           disabled={pending}
           onClick={() => run(() => drawPollAction())}
-          className="h-11 rounded-xl bg-amber-400 px-4 font-semibold text-zinc-950 disabled:opacity-60"
+          className="h-11 rounded-xl bg-purple-400 px-4 font-semibold text-zinc-950 disabled:opacity-60"
         >
           Draw next poll
         </button>

@@ -39,7 +39,7 @@ export default async function VotePage({
     <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-8 px-6 py-12">
       <LiveRefresh />
       <div className="flex flex-col gap-2">
-        <p className="text-sm font-medium uppercase tracking-[0.2em] text-amber-400">
+        <p className="text-sm font-medium uppercase tracking-[0.2em] text-purple-400">
           {event.name}
         </p>
         <h1 className="text-4xl font-semibold tracking-tight">

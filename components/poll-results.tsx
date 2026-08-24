@@ -35,12 +35,12 @@ export function PollResults({
             onClick={() => onVote?.(option.id)}
             className={`relative overflow-hidden rounded-2xl border px-4 py-4 text-left transition ${
               selected
-                ? "border-amber-400 bg-amber-400/10"
+                ? "border-purple-400 bg-purple-400/10"
                 : "border-zinc-700 bg-zinc-900"
-            } ${interactive ? "hover:border-amber-300" : "cursor-default"}`}
+            } ${interactive ? "hover:border-purple-300" : "cursor-default"}`}
           >
             <span
-              className="absolute inset-y-0 left-0 bg-amber-400/20"
+              className="absolute inset-y-0 left-0 bg-purple-400/20"
               style={{ width: `${percent}%` }}
             />
             <span className="relative flex items-center justify-between gap-4">

@@ -30,12 +30,12 @@ export function ArtistList({ artists }: { artists: Artist[] }) {
           name="name"
           required
           placeholder="Add an artist"
-          className="h-12 flex-1 rounded-xl border border-zinc-700 bg-zinc-900 px-4 text-zinc-50 outline-none focus:border-amber-400"
+          className="h-12 flex-1 rounded-xl border border-zinc-700 bg-zinc-900 px-4 text-zinc-50 outline-none focus:border-purple-400"
         />
         <button
           type="submit"
           disabled={addPending}
-          className="h-12 rounded-xl bg-amber-400 px-5 font-semibold text-zinc-950 disabled:opacity-60"
+          className="h-12 rounded-xl bg-purple-400 px-5 font-semibold text-zinc-950 disabled:opacity-60"
         >
           {addPending ? "Adding…" : "Add"}
         </button>
@@ -61,7 +61,7 @@ export function ArtistList({ artists }: { artists: Artist[] }) {
                 <input
                   name="name"
                   defaultValue={artist.name}
-                  className="h-11 flex-1 rounded-xl border border-zinc-700 bg-zinc-950 px-3 text-zinc-50 outline-none focus:border-amber-400"
+                  className="h-11 flex-1 rounded-xl border border-zinc-700 bg-zinc-950 px-3 text-zinc-50 outline-none focus:border-purple-400"
                 />
                 <button
                   type="submit"
@@ -105,7 +105,7 @@ export function ArtistList({ artists }: { artists: Artist[] }) {
         </ul>
       )}
       {artists.length > 0 && artists.length < 2 ? (
-        <p className="text-sm text-amber-300">
+        <p className="text-sm text-purple-300">
           Add at least 2 artists before you can draw a poll.
         </p>
       ) : null}
