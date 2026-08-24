@@ -17,12 +17,12 @@ export function LoginForm() {
         type="password"
         inputMode="numeric"
         required
-        className="h-12 rounded-xl border border-zinc-700 bg-zinc-900 px-4 text-lg text-zinc-50 outline-none focus:border-amber-400"
+        className="h-12 rounded-xl border border-zinc-700 bg-zinc-900 px-4 text-lg text-zinc-50 outline-none focus:border-purple-400"
       />
       <button
         type="submit"
         disabled={pending}
-        className="h-12 rounded-xl bg-amber-400 font-semibold text-zinc-950 disabled:opacity-60"
+        className="h-12 rounded-xl bg-purple-400 font-semibold text-zinc-950 disabled:opacity-60"
       >
         {pending ? "Checking…" : "Enter booth"}
       </button>

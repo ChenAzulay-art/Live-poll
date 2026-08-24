@@ -40,7 +40,7 @@ export default async function DjDashboardPage() {
   const qrDataUrl = await QRCode.toDataURL(voteUrl, {
     margin: 1,
     width: 220,
-    color: { dark: "#09090b", light: "#fbbf24" },
+    color: { dark: "#09090b", light: "#c084fc" },
   });
 
   return (
@@ -48,7 +48,7 @@ export default async function DjDashboardPage() {
       <LiveRefresh />
       <section className="flex flex-1 flex-col gap-6">
         <div className="flex flex-col gap-2">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-amber-400">
+          <p className="text-sm font-medium uppercase tracking-[0.2em] text-purple-400">
             {openPoll ? "Live" : draftPoll ? "Draft" : "Waiting"}
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">
@@ -86,7 +86,7 @@ export default async function DjDashboardPage() {
       </section>
       <aside className="flex w-full flex-col items-center gap-4 rounded-3xl border border-zinc-800 bg-zinc-900 p-6 lg:w-72">
         <p className="text-sm font-medium text-zinc-400">Crowd URL</p>
-        <p className="text-3xl font-semibold tracking-[0.25em] text-amber-400">
+        <p className="text-3xl font-semibold tracking-[0.25em] text-purple-400">
           {event.code}
         </p>
         {/* eslint-disable-next-line @next/next/no-img-element */}
