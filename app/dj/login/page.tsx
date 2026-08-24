@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { LoginForm } from "@/components/login-form";
 
 export default function DjLoginPage() {
@@ -14,6 +15,12 @@ export default function DjLoginPage() {
           </p>
         </div>
         <LoginForm />
+        <Link
+          href="/"
+          className="text-center text-sm font-medium text-zinc-400 underline-offset-4 hover:text-zinc-200 hover:underline"
+        >
+          User login
+        </Link>
       </main>
     </div>
   );
