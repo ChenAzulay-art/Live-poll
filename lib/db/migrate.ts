@@ -26,7 +26,8 @@ CREATE TABLE IF NOT EXISTS polls (
   question TEXT NOT NULL,
   status TEXT NOT NULL,
   position INTEGER NOT NULL,
-  created_at INTEGER NOT NULL
+  created_at INTEGER NOT NULL,
+  opened_at INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS poll_options (
@@ -50,4 +51,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS votes_poll_voter ON votes(poll_id, voter_id);
 export async function applySchema(client: Client) {
   await client.execute("PRAGMA foreign_keys = ON");
   await client.executeMultiple(SCHEMA_SQL);
+  try {
+    await client.execute("ALTER TABLE polls ADD COLUMN opened_at INTEGER");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (!message.toLowerCase().includes("duplicate column")) {
+      throw error;
+    }
+  }
 }
