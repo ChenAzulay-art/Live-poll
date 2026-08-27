@@ -14,9 +14,17 @@ import {
   getPollResults,
   listPollOptions,
 } from "@/lib/db/queries";
+import { boothStage } from "@/lib/poll/booth";
 import { closesAt } from "@/lib/poll/timer";
 
 export const dynamic = "force-dynamic";
+
+const STAGE_LABEL = {
+  live: "Live",
+  draft: "Draft",
+  winner: "Winner",
+  waiting: "Waiting",
+} as const;
 
 async function appUrl() {
   const headerList = await headers();
@@ -36,11 +44,17 @@ export default async function DjDashboardPage() {
     getOpenPoll(db, event.id),
     getDraftPoll(db, event.id),
   ]);
-  const closedPoll = openPoll ? null : await getLatestClosedPoll(db, event.id);
+  const closedPoll =
+    openPoll || draftPoll ? null : await getLatestClosedPoll(db, event.id);
   const livePoll = openPoll ?? closedPoll;
   const results = livePoll ? await getPollResults(db, livePoll.id) : null;
   const draftOptions = draftPoll ? await listPollOptions(db, draftPoll.id) : [];
   const deadline = openPoll ? closesAt(openPoll.openedAt) : null;
+  const stage = boothStage({
+    hasOpenPoll: Boolean(openPoll),
+    hasDraftPoll: Boolean(draftPoll),
+    hasClosedPoll: Boolean(closedPoll),
+  });
 
   const voteUrl = `${await appUrl()}/vote/${event.code}`;
   const qrDataUrl = await QRCode.toDataURL(voteUrl, {
@@ -55,17 +69,12 @@ export default async function DjDashboardPage() {
       <section className="flex flex-1 flex-col gap-6">
         <div className="flex flex-col gap-2">
           <p className="text-sm font-medium uppercase tracking-[0.2em] text-purple-400">
-            {openPoll
-              ? "Live"
-              : closedPoll
-                ? "Winner"
-                : draftPoll
-                  ? "Draft"
-                  : "Waiting"}
+            {STAGE_LABEL[stage]}
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">
-            {livePoll?.question ??
+            {openPoll?.question ??
               draftPoll?.question ??
+              closedPoll?.question ??
               "Draw a poll to start"}
           </h1>
           {openPoll && deadline ? (
@@ -74,19 +83,16 @@ export default async function DjDashboardPage() {
           <p className="text-zinc-400">
             {results
               ? `${results.total} vote${results.total === 1 ? "" : "s"}`
-              : "No votes yet"}
+              : draftPoll
+                ? "Not open yet"
+                : "No votes yet"}
           </p>
         </div>
         <DashboardControls
           draftPollId={draftPoll?.id ?? null}
           openPollId={openPoll?.id ?? null}
         />
-        {closedPoll && results ? (
-          <PollWinner options={results.options} total={results.total} />
-        ) : null}
         {openPoll && results ? (
-          <PollResults options={results.options} total={results.total} />
-        ) : closedPoll && results ? (
           <PollResults options={results.options} total={results.total} />
         ) : draftOptions.length > 0 ? (
           <ul className="flex flex-col gap-2 text-lg">
@@ -99,6 +105,11 @@ export default async function DjDashboardPage() {
               </li>
             ))}
           </ul>
+        ) : closedPoll && results ? (
+          <>
+            <PollWinner options={results.options} total={results.total} />
+            <PollResults options={results.options} total={results.total} />
+          </>
         ) : (
           <p className="text-zinc-500">
             Add artists, then draw a poll. Redraw until you like the lineup,

@@ -137,7 +137,11 @@ export async function moveArtistAction(formData: FormData) {
   revalidatePath("/dj/artists");
 }
 
-export async function drawPollAction(): Promise<ActionState> {
+export async function drawPollAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  void formData;
   try {
     const { db, event } = await requireEvent();
     await drawNextPoll(db, event.id);
@@ -148,11 +152,14 @@ export async function drawPollAction(): Promise<ActionState> {
   }
 }
 
-export async function redrawPollAction(pollId: string): Promise<ActionState> {
+export async function redrawPollAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   try {
     await requireDjSession();
     const { db } = await getDb();
-    await redrawPoll(db, pollId);
+    await redrawPoll(db, String(formData.get("pollId") ?? ""));
     revalidatePath("/dj");
     return null;
   } catch (error) {
@@ -160,11 +167,14 @@ export async function redrawPollAction(pollId: string): Promise<ActionState> {
   }
 }
 
-export async function openPollAction(pollId: string): Promise<ActionState> {
+export async function openPollAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   try {
     await requireDjSession();
     const { db } = await getDb();
-    await openPoll(db, pollId);
+    await openPoll(db, String(formData.get("pollId") ?? ""));
     revalidatePath("/dj");
     revalidatePath("/vote/[code]", "page");
     return null;
@@ -173,11 +183,14 @@ export async function openPollAction(pollId: string): Promise<ActionState> {
   }
 }
 
-export async function closePollAction(pollId: string): Promise<ActionState> {
+export async function closePollAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   try {
     await requireDjSession();
     const { db } = await getDb();
-    await closePoll(db, pollId);
+    await closePoll(db, String(formData.get("pollId") ?? ""));
     revalidatePath("/dj");
     revalidatePath("/vote/[code]", "page");
     return null;

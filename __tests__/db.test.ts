@@ -1,7 +1,9 @@
 // @vitest-environment node
 import { expect, test } from "vitest";
 import { eq } from "drizzle-orm";
+import { createClient } from "@libsql/client";
 import { createMemoryDb } from "@/lib/db/client";
+import { applySchema } from "@/lib/db/migrate";
 import { events, polls } from "@/lib/db/schema";
 import {
   addArtist,
@@ -209,4 +211,22 @@ test("rejects votes after the deadline", async () => {
       voterId: createId(),
     }),
   ).rejects.toBeInstanceOf(PollRuleError);
+});
+
+test("adds opened_at to an existing polls table", async () => {
+  const client = createClient({ url: ":memory:" });
+  await client.execute(`
+    CREATE TABLE polls (
+      id TEXT PRIMARY KEY,
+      event_id TEXT NOT NULL,
+      question TEXT NOT NULL,
+      status TEXT NOT NULL,
+      position INTEGER NOT NULL,
+      created_at INTEGER NOT NULL
+    )
+  `);
+  await applySchema(client);
+  const result = await client.execute("PRAGMA table_info(polls)");
+  const names = result.rows.map((row) => String(row.name));
+  expect(names).toContain("opened_at");
 });
