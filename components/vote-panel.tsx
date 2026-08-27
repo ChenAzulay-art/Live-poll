@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { submitVoteAction } from "@/app/actions";
+import { usePauseLiveRefresh } from "@/components/live-refresh";
 import { PollResults } from "@/components/poll-results";
 import type { ResultOption } from "@/lib/db/queries";
 
@@ -18,6 +19,7 @@ export function VotePanel({
 }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  usePauseLiveRefresh(pending);
 
   function vote(optionId: string) {
     startTransition(async () => {

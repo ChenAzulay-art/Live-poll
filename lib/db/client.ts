@@ -36,9 +36,17 @@ const globalForDb = globalThis as unknown as {
 
 export async function getDb() {
   if (!globalForDb.livePollDb) {
-    globalForDb.livePollDb = prepareDatabase(createDatabase());
+    globalForDb.livePollDb = prepareDatabase(createDatabase()).catch(
+      (error: unknown) => {
+        globalForDb.livePollDb = undefined;
+        throw error;
+      },
+    );
   }
-  return globalForDb.livePollDb;
+  const app = await globalForDb.livePollDb;
+  // Re-run after HMR so existing connections pick up new columns.
+  await applySchema(app.client);
+  return app;
 }
 
 export async function createMemoryDb() {

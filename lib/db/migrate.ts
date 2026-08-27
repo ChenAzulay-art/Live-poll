@@ -48,15 +48,26 @@ CREATE TABLE IF NOT EXISTS votes (
 CREATE UNIQUE INDEX IF NOT EXISTS votes_poll_voter ON votes(poll_id, voter_id);
 `;
 
+function columnName(row: unknown): string {
+  if (Array.isArray(row)) {
+    return String(row[1]);
+  }
+  if (row && typeof row === "object") {
+    const record = row as Record<string, unknown>;
+    return String(record.name ?? record[1]);
+  }
+  return "";
+}
+
+async function tableHasColumn(client: Client, table: string, column: string) {
+  const result = await client.execute(`PRAGMA table_info(${table})`);
+  return result.rows.some((row) => columnName(row) === column);
+}
+
 export async function applySchema(client: Client) {
   await client.execute("PRAGMA foreign_keys = ON");
   await client.executeMultiple(SCHEMA_SQL);
-  try {
+  if (!(await tableHasColumn(client, "polls", "opened_at"))) {
     await client.execute("ALTER TABLE polls ADD COLUMN opened_at INTEGER");
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "";
-    if (!message.toLowerCase().includes("duplicate column")) {
-      throw error;
-    }
   }
 }
