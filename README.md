@@ -36,12 +36,12 @@ On a phone on the same Wi-Fi, use the laptop's LAN address from the DJ QR, not `
 
 None of these are required for local demo. Set them for production.
 
-| Variable | Purpose |
-| --- | --- |
-| `DJ_PIN` | Booth login PIN. Defaults to `1234`. |
-| `SESSION_SECRET` | Signs the DJ session cookie. |
+| Variable             | Purpose                                                    |
+| -------------------- | ---------------------------------------------------------- |
+| `DJ_PIN`             | Booth login PIN. Defaults to `1234`.                       |
+| `SESSION_SECRET`     | Signs the DJ session cookie.                               |
 | `TURSO_DATABASE_URL` | Remote LibSQL / Turso database. `DATABASE_URL` also works. |
-| `TURSO_AUTH_TOKEN` | Turso auth token. Required with a remote database. |
+| `TURSO_AUTH_TOKEN`   | Turso auth token. Required with a remote database.         |
 
 Hosted deploys (Vercel) need `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`, then a redeploy.
 
