@@ -32,23 +32,27 @@ export function PollResults({
           voteAction &&
           pollId,
         );
-        const className = `relative overflow-hidden rounded-2xl border px-4 py-4 text-left transition ${
-          selected
-            ? "border-purple-400 bg-purple-400/10"
-            : "border-zinc-700 bg-zinc-900"
-        } ${interactive ? "hover:border-purple-300" : "cursor-default"}`;
+        const className = `relative overflow-hidden rounded-sm px-5 py-5 text-left transition ${
+          selected ? "bg-acid text-night" : "bg-paper/5 text-paper"
+        } ${interactive ? "hover:bg-acid/20" : "cursor-default"}`;
 
         const body = (
           <>
             <span
-              className="absolute inset-y-0 left-0 bg-purple-400/20"
+              className={`absolute inset-y-0 left-0 ${
+                selected ? "bg-night/10" : "bg-acid/40"
+              }`}
               style={{ width: `${percent}%` }}
             />
             <span className="relative flex items-center justify-between gap-4">
-              <span className="text-lg font-semibold tracking-tight text-zinc-50">
+              <span className="font-display text-2xl tracking-tight">
                 {option.label}
               </span>
-              <span className="text-sm font-medium text-zinc-300">
+              <span
+                className={`text-sm font-medium ${
+                  selected ? "text-night/70" : "text-mute"
+                }`}
+              >
                 {option.votes} · {percent}%
               </span>
             </span>
