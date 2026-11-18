@@ -31,9 +31,7 @@ export function VotePanel({
         votingEnabled
         pending={pending}
       />
-      {state?.error ? (
-        <p className="text-sm text-rose-300">{state.error}</p>
-      ) : null}
+      {state?.error ? <p className="text-sm text-acid">{state.error}</p> : null}
     </div>
   );
 }

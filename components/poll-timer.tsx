@@ -43,12 +43,8 @@ export function PollTimer({
       role="timer"
       aria-live="polite"
       suppressHydrationWarning
-      className={`font-semibold tabular-nums tracking-tight ${
-        urgent
-          ? "animate-pulse text-7xl text-rose-400"
-          : compact
-            ? "text-3xl text-purple-400"
-            : "text-5xl text-purple-400"
+      className={`font-display tabular-nums tracking-tight text-acid ${
+        urgent ? "animate-pulse text-7xl" : compact ? "text-3xl" : "text-5xl"
       }`}
     >
       {formatCountdown(remaining)}

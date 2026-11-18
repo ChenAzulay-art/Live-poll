@@ -3,6 +3,8 @@ import { PollTimer } from "@/components/poll-timer";
 import { PollWinner } from "@/components/poll-winner";
 import { VotePanel } from "@/components/vote-panel";
 import { PollResults } from "@/components/poll-results";
+import { BrandMark } from "@/components/brand-mark";
+import { DisplayTitle } from "@/components/display-title";
 import { getDb } from "@/lib/db/client";
 import { getVoterId } from "@/lib/auth/cookies";
 import {
@@ -28,8 +30,9 @@ export default async function VotePage({
   if (!event) {
     return (
       <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-4 px-6 py-16">
-        <h1 className="text-3xl font-semibold">Night not found</h1>
-        <p className="text-zinc-400">Check the code and try again.</p>
+        <BrandMark />
+        <DisplayTitle text="Night not found." />
+        <p className="text-mute">Check the code and try again.</p>
       </main>
     );
   }
@@ -46,25 +49,27 @@ export default async function VotePage({
   const deadline = openPoll ? closesAt(openPoll.openedAt) : null;
 
   return (
-    <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-8 px-6 py-12">
+    <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-8 px-6 py-10">
       <LiveRefresh />
-      <div className="flex flex-col gap-2">
-        <p className="text-sm font-medium uppercase tracking-[0.2em] text-purple-400">
+      <div className="flex items-center justify-between gap-4">
+        <BrandMark />
+        <p className="rounded-full border border-acid px-3 py-1 text-xs font-semibold tracking-[0.22em] text-acid">
+          {event.code}
+        </p>
+      </div>
+      <div className="flex flex-col gap-3">
+        <p className="text-xs font-medium uppercase tracking-[0.22em] text-mute">
           {event.name}
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight">
-          {displayPoll?.question ?? "Waiting for the DJ"}
-        </h1>
+        <DisplayTitle text={displayPoll?.question ?? "Waiting for the DJ"} />
         {openPoll && deadline ? <PollTimer closesAt={deadline} /> : null}
         {results ? (
-          <p className="text-zinc-400">
+          <p className="text-sm text-mute">
             {results.total} vote{results.total === 1 ? "" : "s"}
             {openPoll ? (vote ? " · You’re in" : " · Tap an artist") : ""}
           </p>
         ) : (
-          <p className="text-zinc-400">
-            A poll will show up here when the DJ opens it.
-          </p>
+          <p className="text-sm text-mute">The DJ is cueing the next record.</p>
         )}
       </div>
       {closedPoll && results ? (

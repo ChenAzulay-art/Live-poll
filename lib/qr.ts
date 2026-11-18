@@ -10,7 +10,7 @@ export async function voteQrDataUrl(voteUrl: string) {
   const dataUrl = await QRCode.toDataURL(voteUrl, {
     margin: 1,
     width: 220,
-    color: { dark: "#09090b", light: "#c084fc" },
+    color: { dark: "#0a0a0a", light: "#d6ff2a" },
   });
   cache.set(voteUrl, dataUrl);
   return dataUrl;

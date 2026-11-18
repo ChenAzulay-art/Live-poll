@@ -8,7 +8,10 @@ export function LoginForm() {
 
   return (
     <form action={action} className="flex w-full flex-col gap-3">
-      <label className="text-sm font-medium text-zinc-400" htmlFor="pin">
+      <label
+        className="text-xs font-medium uppercase tracking-[0.2em] text-mute"
+        htmlFor="pin"
+      >
         DJ PIN
       </label>
       <input
@@ -17,18 +20,16 @@ export function LoginForm() {
         type="password"
         inputMode="numeric"
         required
-        className="h-12 rounded-xl border border-zinc-700 bg-zinc-900 px-4 text-lg text-zinc-50 outline-none focus:border-purple-400"
+        className="h-14 rounded-full border border-paper/15 bg-night px-5 text-lg text-paper outline-none focus:border-acid"
       />
       <button
         type="submit"
         disabled={pending}
-        className="h-12 rounded-xl bg-purple-400 font-semibold text-zinc-950 disabled:opacity-60"
+        className="h-14 rounded-full bg-acid px-5 font-semibold text-night disabled:opacity-60"
       >
-        {pending ? "Checking…" : "Enter booth"}
+        {pending ? "Checking…" : "Enter booth →"}
       </button>
-      {state?.error ? (
-        <p className="text-sm text-rose-300">{state.error}</p>
-      ) : null}
+      {state?.error ? <p className="text-sm text-acid">{state.error}</p> : null}
     </form>
   );
 }

@@ -11,7 +11,7 @@ test("makes the last ten seconds prominent", () => {
   const timer = screen.getByRole("timer");
   expect(timer).toHaveClass("animate-pulse");
   expect(timer).toHaveClass("text-7xl");
-  expect(timer).toHaveClass("text-rose-400");
+  expect(timer).toHaveClass("text-acid");
 });
 
 test("stays calm before the last ten seconds", () => {
