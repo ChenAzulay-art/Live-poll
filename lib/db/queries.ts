@@ -372,22 +372,29 @@ export async function getPollResults(
   options: ResultOption[];
   total: number;
 }> {
-  const options = await listPollOptions(db, pollId);
-  const voteRows = await db
+  const rows = await db
     .select({
-      optionId: votes.optionId,
-      count: count(votes.id),
+      id: pollOptions.id,
+      artistId: pollOptions.artistId,
+      label: pollOptions.label,
+      votes: count(votes.id),
     })
-    .from(votes)
-    .where(eq(votes.pollId, pollId))
-    .groupBy(votes.optionId);
+    .from(pollOptions)
+    .leftJoin(votes, eq(votes.optionId, pollOptions.id))
+    .where(eq(pollOptions.pollId, pollId))
+    .groupBy(
+      pollOptions.id,
+      pollOptions.artistId,
+      pollOptions.label,
+      pollOptions.position,
+    )
+    .orderBy(asc(pollOptions.position));
 
-  const counts = new Map(voteRows.map((row) => [row.optionId, row.count]));
-  const resultOptions = options.map((option) => ({
-    id: option.id,
-    artistId: option.artistId,
-    label: option.label,
-    votes: counts.get(option.id) ?? 0,
+  const resultOptions = rows.map((row) => ({
+    id: row.id,
+    artistId: row.artistId,
+    label: row.label,
+    votes: Number(row.votes) || 0,
   }));
   const total = resultOptions.reduce((sum, option) => sum + option.votes, 0);
   return { options: resultOptions, total };

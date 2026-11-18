@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { formatCountdown, isUrgent, remainingMs } from "@/lib/poll/timer";
 
+const URGENT_TICK_MS = 11_000;
+
 export function PollTimer({
   closesAt,
   compact = false,
@@ -18,10 +20,16 @@ export function PollTimer({
   const urgent = isUrgent(remaining);
 
   useEffect(() => {
-    const intervalMs = remaining <= URGENT_TICK_MS ? 100 : 250;
-    const id = setInterval(() => setNow(Date.now()), intervalMs);
-    return () => clearInterval(id);
-  }, [remaining]);
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const tick = () => {
+      const current = Date.now();
+      setNow(current);
+      const left = remainingMs(closesAt, current);
+      timeoutId = setTimeout(tick, left <= URGENT_TICK_MS ? 100 : 250);
+    };
+    tick();
+    return () => clearTimeout(timeoutId);
+  }, [closesAt]);
 
   useEffect(() => {
     if (remaining <= 0 && !refreshed.current) {
@@ -34,6 +42,7 @@ export function PollTimer({
     <p
       role="timer"
       aria-live="polite"
+      suppressHydrationWarning
       className={`font-semibold tabular-nums tracking-tight ${
         urgent
           ? "animate-pulse text-7xl text-rose-400"
@@ -46,5 +55,3 @@ export function PollTimer({
     </p>
   );
 }
-
-const URGENT_TICK_MS = 11_000;

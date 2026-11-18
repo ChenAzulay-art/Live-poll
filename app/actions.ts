@@ -200,8 +200,8 @@ export async function closePollAction(
 }
 
 export async function submitVoteAction(
-  pollId: string,
-  optionId: string,
+  _prev: ActionState,
+  formData: FormData,
 ): Promise<ActionState> {
   try {
     const voterId = await getOrCreateVoterId();
@@ -209,7 +209,11 @@ export async function submitVoteAction(
       return { error: "Too many votes too fast. Wait a moment." };
     }
     const { db } = await getDb();
-    await submitVote(db, { pollId, optionId, voterId });
+    await submitVote(db, {
+      pollId: String(formData.get("pollId") ?? ""),
+      optionId: String(formData.get("optionId") ?? ""),
+      voterId,
+    });
     revalidatePath("/vote/[code]", "page");
     revalidatePath("/dj");
     return null;

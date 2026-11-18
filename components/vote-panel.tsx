@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useActionState } from "react";
 import { submitVoteAction } from "@/app/actions";
 import { usePauseLiveRefresh } from "@/components/live-refresh";
 import { PollResults } from "@/components/poll-results";
@@ -17,16 +17,8 @@ export function VotePanel({
   total: number;
   selectedOptionId?: string | null;
 }) {
-  const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [state, action, pending] = useActionState(submitVoteAction, null);
   usePauseLiveRefresh(pending);
-
-  function vote(optionId: string) {
-    startTransition(async () => {
-      const result = await submitVoteAction(pollId, optionId);
-      setError(result?.error ?? null);
-    });
-  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -34,11 +26,14 @@ export function VotePanel({
         options={options}
         total={total}
         selectedOptionId={selectedOptionId}
+        pollId={pollId}
+        voteAction={action}
         votingEnabled
         pending={pending}
-        onVote={vote}
       />
-      {error ? <p className="text-sm text-rose-300">{error}</p> : null}
+      {state?.error ? (
+        <p className="text-sm text-rose-300">{state.error}</p>
+      ) : null}
     </div>
   );
 }

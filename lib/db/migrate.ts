@@ -1,5 +1,8 @@
 import type { Client } from "@libsql/client";
 
+/** Bump this when the SQL schema changes so existing connections migrate once. */
+export const SCHEMA_VERSION = 2;
+
 const SCHEMA_SQL = `
 PRAGMA foreign_keys = ON;
 
