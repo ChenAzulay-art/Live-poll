@@ -8,14 +8,16 @@ export function PollResults({
   selectedOptionId,
   votingEnabled = false,
   pending = false,
-  onVote,
+  pollId,
+  voteAction,
 }: {
   options: ResultOption[];
   total: number;
   selectedOptionId?: string | null;
   votingEnabled?: boolean;
   pending?: boolean;
-  onVote?: (optionId: string) => void;
+  pollId?: string;
+  voteAction?: (formData: FormData) => void | Promise<void>;
 }) {
   return (
     <div className="flex w-full flex-col gap-3">
@@ -24,21 +26,20 @@ export function PollResults({
           total === 0 ? 0 : Math.round((option.votes / total) * 100);
         const selected = selectedOptionId === option.id;
         const interactive = Boolean(
-          votingEnabled && !selectedOptionId && !pending && onVote,
+          votingEnabled &&
+          !selectedOptionId &&
+          !pending &&
+          voteAction &&
+          pollId,
         );
+        const className = `relative overflow-hidden rounded-2xl border px-4 py-4 text-left transition ${
+          selected
+            ? "border-purple-400 bg-purple-400/10"
+            : "border-zinc-700 bg-zinc-900"
+        } ${interactive ? "hover:border-purple-300" : "cursor-default"}`;
 
-        return (
-          <button
-            key={option.id}
-            type="button"
-            disabled={!interactive}
-            onClick={() => onVote?.(option.id)}
-            className={`relative overflow-hidden rounded-2xl border px-4 py-4 text-left transition ${
-              selected
-                ? "border-purple-400 bg-purple-400/10"
-                : "border-zinc-700 bg-zinc-900"
-            } ${interactive ? "hover:border-purple-300" : "cursor-default"}`}
-          >
+        const body = (
+          <>
             <span
               className="absolute inset-y-0 left-0 bg-purple-400/20"
               style={{ width: `${percent}%` }}
@@ -51,6 +52,24 @@ export function PollResults({
                 {option.votes} · {percent}%
               </span>
             </span>
+          </>
+        );
+
+        if (interactive) {
+          return (
+            <form action={voteAction} key={option.id}>
+              <input type="hidden" name="pollId" value={pollId} />
+              <input type="hidden" name="optionId" value={option.id} />
+              <button type="submit" className={`w-full ${className}`}>
+                {body}
+              </button>
+            </form>
+          );
+        }
+
+        return (
+          <button key={option.id} type="button" disabled className={className}>
+            {body}
           </button>
         );
       })}

@@ -22,7 +22,7 @@ export default async function VotePage({
   params: Promise<{ code: string }>;
 }) {
   const { code } = await params;
-  const { db } = await getDb();
+  const [{ db }, voterId] = await Promise.all([getDb(), getVoterId()]);
   const event = await getEventByCode(db, code);
 
   if (!event) {
@@ -37,10 +37,12 @@ export default async function VotePage({
   const openPoll = await getOpenPoll(db, event.id);
   const closedPoll = openPoll ? null : await getLatestClosedPoll(db, event.id);
   const displayPoll = openPoll ?? closedPoll;
-  const voterId = await getVoterId();
-  const results = displayPoll ? await getPollResults(db, displayPoll.id) : null;
-  const vote =
-    openPoll && voterId ? await getVoterChoice(db, openPoll.id, voterId) : null;
+  const [results, vote] = await Promise.all([
+    displayPoll ? getPollResults(db, displayPoll.id) : Promise.resolve(null),
+    openPoll && voterId
+      ? getVoterChoice(db, openPoll.id, voterId)
+      : Promise.resolve(null),
+  ]);
   const deadline = openPoll ? closesAt(openPoll.openedAt) : null;
 
   return (

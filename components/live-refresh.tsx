@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 let pendingMutations = 0;
+const PAUSE_MS = 4_000;
 
 export function usePauseLiveRefresh(paused: boolean) {
   useEffect(() => {
@@ -11,13 +12,23 @@ export function usePauseLiveRefresh(paused: boolean) {
       return;
     }
     pendingMutations += 1;
-    return () => {
+    let released = false;
+    const release = () => {
+      if (released) {
+        return;
+      }
+      released = true;
       pendingMutations = Math.max(0, pendingMutations - 1);
+    };
+    const timeout = window.setTimeout(release, PAUSE_MS);
+    return () => {
+      window.clearTimeout(timeout);
+      release();
     };
   }, [paused]);
 }
 
-export function LiveRefresh({ intervalMs = 1500 }: { intervalMs?: number }) {
+export function LiveRefresh({ intervalMs = 2000 }: { intervalMs?: number }) {
   const router = useRouter();
 
   useEffect(() => {

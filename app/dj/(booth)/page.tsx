@@ -1,5 +1,5 @@
-import QRCode from "qrcode";
 import { headers } from "next/headers";
+import Link from "next/link";
 import { DashboardControls } from "@/components/dashboard-controls";
 import { LiveRefresh } from "@/components/live-refresh";
 import { PollResults } from "@/components/poll-results";
@@ -14,8 +14,10 @@ import {
   getPollResults,
   listPollOptions,
 } from "@/lib/db/queries";
+import { crowdFacingHost } from "@/lib/net/lan";
 import { boothStage } from "@/lib/poll/booth";
 import { closesAt } from "@/lib/poll/timer";
+import { voteQrDataUrl } from "@/lib/qr";
 
 export const dynamic = "force-dynamic";
 
@@ -30,11 +32,14 @@ async function appUrl() {
   const headerList = await headers();
   const host = headerList.get("x-forwarded-host") ?? headerList.get("host");
   const protocol = headerList.get("x-forwarded-proto") ?? "http";
-  return host ? `${protocol}://${host}` : "http://localhost:3000";
+  if (!host) {
+    return "http://localhost:3000";
+  }
+  return `${protocol}://${crowdFacingHost(host)}`;
 }
 
 export default async function DjDashboardPage() {
-  const { db } = await getDb();
+  const [{ db }, baseUrl] = await Promise.all([getDb(), appUrl()]);
   const event = await getDefaultEvent(db);
   if (!event) {
     return <p className="text-zinc-400">No event is set up yet.</p>;
@@ -47,20 +52,17 @@ export default async function DjDashboardPage() {
   const closedPoll =
     openPoll || draftPoll ? null : await getLatestClosedPoll(db, event.id);
   const livePoll = openPoll ?? closedPoll;
-  const results = livePoll ? await getPollResults(db, livePoll.id) : null;
-  const draftOptions = draftPoll ? await listPollOptions(db, draftPoll.id) : [];
+  const voteUrl = `${baseUrl}/vote/${event.code}`;
+  const [results, draftOptions, qrDataUrl] = await Promise.all([
+    livePoll ? getPollResults(db, livePoll.id) : Promise.resolve(null),
+    draftPoll ? listPollOptions(db, draftPoll.id) : Promise.resolve([]),
+    voteQrDataUrl(voteUrl),
+  ]);
   const deadline = openPoll ? closesAt(openPoll.openedAt) : null;
   const stage = boothStage({
     hasOpenPoll: Boolean(openPoll),
     hasDraftPoll: Boolean(draftPoll),
     hasClosedPoll: Boolean(closedPoll),
-  });
-
-  const voteUrl = `${await appUrl()}/vote/${event.code}`;
-  const qrDataUrl = await QRCode.toDataURL(voteUrl, {
-    margin: 1,
-    width: 220,
-    color: { dark: "#09090b", light: "#c084fc" },
   });
 
   return (
@@ -128,7 +130,18 @@ export default async function DjDashboardPage() {
           alt="QR code for the voting page"
           className="rounded-xl"
         />
-        <p className="break-all text-center text-xs text-zinc-500">{voteUrl}</p>
+        <Link
+          href={`/vote/${event.code}`}
+          className="text-sm font-medium text-purple-300 underline-offset-4 hover:text-purple-200 hover:underline"
+        >
+          Open guest page
+        </Link>
+        <a
+          href={voteUrl}
+          className="break-all text-center text-xs text-zinc-500 underline-offset-4 hover:text-zinc-300 hover:underline"
+        >
+          {voteUrl}
+        </a>
       </aside>
     </main>
   );

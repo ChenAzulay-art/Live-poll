@@ -18,12 +18,20 @@ export default function Home() {
           </p>
         </div>
         <JoinForm />
-        <Link
-          href="/dj/login"
-          className="text-center text-sm font-medium text-zinc-400 underline-offset-4 hover:text-zinc-200 hover:underline"
-        >
-          DJ login
-        </Link>
+        <div className="flex flex-col items-center gap-2">
+          <Link
+            href="/vote/NIGHT"
+            className="text-center text-sm font-medium text-zinc-400 underline-offset-4 hover:text-zinc-200 hover:underline"
+          >
+            Guest page
+          </Link>
+          <Link
+            href="/dj/login"
+            className="text-center text-sm font-medium text-zinc-400 underline-offset-4 hover:text-zinc-200 hover:underline"
+          >
+            DJ login
+          </Link>
+        </div>
       </main>
     </div>
   );
