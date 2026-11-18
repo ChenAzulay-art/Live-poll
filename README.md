@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Live Poll
 
-## Getting Started
+Crowd votes for the next artist. The DJ watches it live.
 
-First, run the development server:
+Guests join with a night code and pick from a short lineup. The DJ draws artists from a list, opens a 90-second poll, and sees votes update on the booth. When time is up, the winner is locked in.
+
+Live site: [live-poll-kohl.vercel.app](https://live-poll-kohl.vercel.app)
+
+## How a night works
+
+1. The DJ adds artists, then draws a poll and opens it.
+2. Guests open `/vote/NIGHT` or scan the QR on the booth.
+3. Everyone has 90 seconds to vote. One vote per device.
+4. The timer ends, the poll closes, and the winner is shown on both screens.
+
+Local demo night code is `NIGHT`. DJ PIN defaults to `1234`.
+
+## Run locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). If that port is taken, Next will pick another, or you can pass one:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run dev -- --port 3001
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The first run creates a local SQLite file (`local.db`) and seeds the demo night.
 
-## Learn More
+On a phone on the same Wi-Fi, use the laptop's LAN address from the DJ QR, not `localhost`.
 
-To learn more about Next.js, take a look at the following resources:
+## Environment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+None of these are required for local demo. Set them for production.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Variable | Purpose |
+| --- | --- |
+| `DJ_PIN` | Booth login PIN. Defaults to `1234`. |
+| `SESSION_SECRET` | Signs the DJ session cookie. |
+| `TURSO_DATABASE_URL` | Remote LibSQL / Turso database. `DATABASE_URL` also works. |
+| `TURSO_AUTH_TOKEN` | Turso auth token. Required with a remote database. |
 
-## Deploy on Vercel
+Hosted deploys (Vercel) need `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`, then a redeploy.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run check   # types, lint, format, tests
+npm test
+npm run build
+```
+
+## Stack
+
+Next.js App Router, Drizzle + LibSQL (SQLite locally, Turso in production), and a black / acid-lime poster UI.
